@@ -38,7 +38,11 @@ Promise.all(promises).then(function(promisedData){
         links: promisedData[0],
         nodes: promisedData[1]
     }
-    console.log(data);
+
+    //
+    let ego = data.nodes[0].ego;
+    data.links = data.links.filter(d => (d.source != ego && d.target != ego));
+
 
     // Initialize the links
     var link = svg.selectAll("line")
@@ -64,7 +68,7 @@ Promise.all(promises).then(function(promisedData){
             .links(data.links)                                    // and this the list of links
         )
         .force("r", d3.forceRadial(d => d.hop * 50, width/2, height/2).strength(1))
-        .force("charge", d3.forceManyBody().strength(-50))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+        .force("charge", d3.forceManyBody().strength(-25))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
         //.force("center", d3.forceCenter(width / 2, height / 2))     // This force attracts nodes to the center of the svg area
         .on("end", ticked);
 
