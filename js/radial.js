@@ -1,10 +1,10 @@
 // set the dimensions and margins of the graph
-var margin = {top: 10, right: 10, bottom: 10, left: 10},
+const margin = {top: 10, right: 10, bottom: 10, left: 10},
   width = 600 - margin.left - margin.right,
   height = 600 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
-var svg = d3.select("#radial")
+const svg = d3.select("#radial")
 .append("svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
@@ -45,14 +45,20 @@ Promise.all(promises).then(function(promisedData){
 
 
     // Initialize the links
-    var link = svg.selectAll("line")
+    var link = svg.append('g')
+        .style("stroke", "#aaa")
+        .attr("stroke-opacity", 1)
+    .selectAll("line")
     .data(data.links)
     .enter()
     .append("line")
-        .style("stroke", "#aaa")
+        .attr("stroke-width", d => d.weight);
 
     // Initialize the nodes
-    var node = svg.selectAll("circle")
+    var node = svg.append('g')
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+    .selectAll("circle")
     .data(data.nodes)
     .enter()
     .append("circle")
@@ -62,13 +68,12 @@ Promise.all(promises).then(function(promisedData){
 
     // Let's list the force we wanna apply on the network
     var simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
-        .force("link", d3.forceLink()
-            .strength(0.1)                               // This force provides links between nodes
+        .force("link", d3.forceLink()              // This force provides links between nodes
             .id(function(d) { return d.id; })                     // This provide  the id of a node
             .links(data.links)                                    // and this the list of links
         )
-        .force("r", d3.forceRadial(d => d.hop * 50, width/2, height/2).strength(1))
-        .force("charge", d3.forceManyBody().strength(-25))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+        .force("r", d3.forceRadial(d => d.hop * 75, width/2, height/2).strength(1))
+        .force("charge", d3.forceManyBody())         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
         //.force("center", d3.forceCenter(width / 2, height / 2))     // This force attracts nodes to the center of the svg area
         .on("end", ticked);
 
@@ -81,8 +86,8 @@ Promise.all(promises).then(function(promisedData){
         .attr("y2", function(d) { return d.target.y; });
 
     node
-        .attr("cx", function (d) { return d.x+2; })
-        .attr("cy", function(d) { return d.y-2; });
+        .attr("cx", function (d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
     }
 
 }).catch(function(error) {
