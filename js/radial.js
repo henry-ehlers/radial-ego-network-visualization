@@ -11,10 +11,13 @@ const svg = d3.select("#radial")
 .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-const promises = [
-    d3.json('./data/miserables.annotated.edges.json'),
-    d3.json('./data/miserables.nodes.json')
-];
+  const dataset = "mouse.visual_cortex_1";
+  const ego = "1";
+  
+  const promises = [
+      d3.json('./data/' + dataset + "." + ego + '.edges.json'),
+      d3.json('./data/' + dataset + "." + ego + '.nodes.json')
+  ];
 
 function color(hop) {
     switch (hop) {
@@ -73,7 +76,7 @@ Promise.all(promises).then(function(promisedData){
             .links(data.links)                                    // and this the list of links
         )
         .force("r", d3.forceRadial(d => d.hop * 75, width/2, height/2).strength(1))
-        .force("charge", d3.forceManyBody())         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+        .force("charge", d3.forceManyBody().strength(-50))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
         //.force("center", d3.forceCenter(width / 2, height / 2))     // This force attracts nodes to the center of the svg area
         .on("end", ticked);
 
