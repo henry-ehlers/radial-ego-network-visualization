@@ -1,7 +1,7 @@
 // set the dimensions and margins of the graph
 const margin = {top: 10, right: 10, bottom: 10, left: 10},
-  width = 600 - margin.left - margin.right,
-  height = 600 - margin.top - margin.bottom;
+  width = 1200 - margin.left - margin.right,
+  height = 1200 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 const svg = d3.select("#radial")
@@ -11,8 +11,8 @@ const svg = d3.select("#radial")
 .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  const dataset = "mouse.visual_cortex_1";
-  const ego = "1";
+  const dataset = "miserables";
+  const ego = "Valjean";
   
   const promises = [
       d3.json('./data/' + dataset + "." + ego + '.edges.json'),
@@ -21,6 +21,8 @@ const svg = d3.select("#radial")
 
 function color(hop) {
     switch (hop) {
+        case -1:
+            return 'black';
         case 0:
             return 'black';
         case 1:
@@ -44,40 +46,73 @@ Promise.all(promises).then(function(promisedData){
 
     //
     let ego = data.nodes[0].ego;
-    data.links = data.links.filter(d => (d.source != ego && d.target != ego));
+    const hopMax = Math.max(...data.nodes.map(d => d.hop));
+    console.log(hopMax);
+    const radius = Math.min(height, width) / (2 * hopMax);
+    console.log(radius);
+    ///data.links = data.links.filter(d => (d.source != ego && d.target != ego));
 
-
+    console.log(data.links.map(d => d.hop))
     // Initialize the links
     var link = svg.append('g')
-        .style("stroke", "#aaa")
         .attr("stroke-opacity", 1)
-    .selectAll("line")
-    .data(data.links)
-    .enter()
-    .append("line")
-        .attr("stroke-width", d => d.weight);
+        .selectAll("line")
+        .data(data.links)
+        .enter()
+        .append("line")
+            .attr("stroke-width", d => d.weight)
+            .style("stroke", d => color(d.hop));
+
+    // Node Overlay (to space edges from nodes)
+    const buffer = svg.append('g')
+        .attr('fill', 'white')
+        .selectAll("circle.buffer")
+        .data(data.nodes)
+        .enter()
+        .append("circle")
+            .attr('class', 'buffer')
+            .attr("r", 9);
 
     // Initialize the nodes
-    var node = svg.append('g')
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
-    .selectAll("circle")
-    .data(data.nodes)
-    .enter()
-    .append("circle")
-        .attr("r", 4)
-        .style("fill", d => color(d.hop))
-    console.log(data.nodes)
+    const node = svg.append('g')
+        .attr("stroke-width", 1)
+        .attr('fill', 'white')
+        .selectAll("circle.node")
+        .data(data.nodes)
+        .enter()
+        .append("circle")
+            .attr('class', 'node')
+            .attr("r", 7)
+            .style("stroke", d => color(d.hop))
+
+        // Text
+    const text = svg.append('g')
+        .attr('class', 'node-text')
+        .style("text-anchor", "middle")
+        .style('dominant-baseline', 'central')
+        .style("font-size", "6pt")
+        .selectAll('text')
+        .data(data.nodes)
+        .enter()
+            .append('text')
+                .text(d => Math.floor(Math.random() * 99))
 
     // Let's list the force we wanna apply on the network
     var simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
-        .force("link", d3.forceLink()              // This force provides links between nodes
-            .id(function(d) { return d.id; })                     // This provide  the id of a node
-            .links(data.links)                                    // and this the list of links
+        .force("link", 
+            d3.forceLink()              // This force provides links between nodes
+                .strength(0.1)
+                .id(function(d) { return d.id; })                     // This provide  the id of a node
+                .links(data.links)                                    // and this the list of links
         )
-        .force("r", d3.forceRadial(d => d.hop * 75, width/2, height/2).strength(1))
-        .force("charge", d3.forceManyBody().strength(-50))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
-        //.force("center", d3.forceCenter(width / 2, height / 2))     // This force attracts nodes to the center of the svg area
+        .force("r", 
+            d3.forceRadial(d => d.hop * radius, width/2, height/2)
+                .strength(1))
+        .force("charge", 
+            d3.forceManyBody()
+                .strength(-250))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+        .force("center", 
+            d3.forceCenter(width / 2, height / 2))     // This force attracts nodes to the center of the svg area
         .on("end", ticked);
 
     // This function is run at each iteration of the force algorithm, updating the nodes position.
@@ -91,6 +126,15 @@ Promise.all(promises).then(function(promisedData){
     node
         .attr("cx", function (d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
+
+    buffer
+        .attr("cx", function (d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+
+    text
+        .attr("x", function (d) { return d.x; })
+        .attr("y", function(d) { return d.y; });
+
     }
 
 }).catch(function(error) {
