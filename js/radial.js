@@ -47,12 +47,8 @@ Promise.all(promises).then(function(promisedData){
     //
     let ego = data.nodes[0].ego;
     const hopMax = Math.max(...data.nodes.map(d => d.hop));
-    console.log(hopMax);
     const radius = Math.min(height, width) / (2 * hopMax);
-    console.log(radius);
-    ///data.links = data.links.filter(d => (d.source != ego && d.target != ego));
 
-    console.log(data.links.map(d => d.hop))
     // Initialize the links
     var link = svg.append('g')
         .attr("stroke-opacity", 1)
@@ -85,7 +81,7 @@ Promise.all(promises).then(function(promisedData){
             .attr("r", 7)
             .style("stroke", d => color(d.hop))
 
-        // Text
+    // Text
     const text = svg.append('g')
         .attr('class', 'node-text')
         .style("text-anchor", "middle")
@@ -101,7 +97,7 @@ Promise.all(promises).then(function(promisedData){
     var simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
         .force("link", 
             d3.forceLink()              // This force provides links between nodes
-                .strength(0.1)
+                //.strength(0.1)
                 .id(function(d) { return d.id; })                     // This provide  the id of a node
                 .links(data.links)                                    // and this the list of links
         )
